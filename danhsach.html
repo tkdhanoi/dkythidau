@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Đăng Ký Thi Đấu</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1e3c72;
+            --primary-light: #2a5298;
+            --accent-color: #0d6efd;
+            --success-color: #198754;
+            --bg-body: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #dee2e6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-color); padding: 10px; line-height: 1.2; }
+        .container { max-width: 1450px; margin: 0 auto; }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .header h1 { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* KHU VỰC THỐNG KÊ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .stat-card.card-total { border-left-color: #0d6efd; }
+        .stat-card.card-male { border-left-color: #0284c7; }
+        .stat-card.card-female { border-left-color: #d63384; }
+        .stat-card.card-club { border-left-color: #198754; }
+
+        .stat-info h3 { font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 2px; }
+        .stat-info p { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-icon { font-size: 26px; }
+
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .btn-group { display: flex; gap: 8px; }
+
+        .btn {
+            border: none; padding: 8px 14px;
+            font-size: 13px; font-weight: 600;
+            border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-primary { background-color: var(--accent-color); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .table-responsive {
+            width: 100%;
+            overflow: auto;
+            max-height: 550px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px;
+            border-bottom: 2px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            text-align: center;
+            white-space: nowrap;
+            position: sticky; top: 0; z-index: 10;
+        }
+
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #f1f5f9; }
+
+        .stt-col { text-align: center; font-weight: bold; width: 45px; }
+        .text-center { text-align: center; }
+        .badge-club { background-color: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
+        .code-val { color: var(--accent-color); font-weight: 700; }
+        .empty-row { text-align: center; color: #64748b; font-style: italic; padding: 20px !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fa-solid fa-list-check"></i> DANH SÁCH ĐĂNG KÝ THI ĐẤU</h1>
+    </div>
+
+    <!-- Thống kê -->
+    <div class="stats-grid">
+        <div class="stat-card card-total">
+            <div class="stat-info">
+                <p>Tổng VĐV Đăng Ký</p>
+                <h3 id="statTotal">0</h3>
+            </div>
+            <i class="fa-solid fa-users stat-icon" style="color: #0d6efd;"></i>
+        </div>
+
+        <div class="stat-card card-male">
+            <div class="stat-info">
+                <p>VĐV Nam</p>
+                <h3 id="statMale">0</h3>
+            </div>
+            <i class="fa-solid fa-mars stat-icon" style="color: #0284c7;"></i>
+        </div>
+
+        <div class="stat-card card-female">
+            <div class="stat-info">
+                <p>VĐV Nữ</p>
+                <h3 id="statFemale">0</h3>
+            </div>
+            <i class="fa-solid fa-venus stat-icon" style="color: #d63384;"></i>
+        </div>
+
+        <div class="stat-card card-club">
+            <div class="stat-info">
+                <p>Đơn Vị / CLB</p>
+                <h3 id="statClubs">0</h3>
+            </div>
+            <i class="fa-solid fa-shield-halved stat-icon" style="color: #198754;"></i>
+        </div>
+    </div>
+
+    <!-- Bảng Dữ Liệu -->
+    <div class="section-card">
+        <div class="section-title">
+            <span><i class="fa-solid fa-table"></i> Danh Sách Chi Tiết</span>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="loadDataFromSheet()">
+                    <i class="fa-solid fa-rotate"></i> Tải Lại Dữ Liệu
+                </button>
+                <button class="btn btn-success" onclick="downloadExcel()">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="stt-col">STT</th>
+                        <th>ĐƠN VỊ / CLB</th>
+                        <th>MÃ HỘI VIÊN</th>
+                        <th>HỌ TÊN</th>
+                        <th>NĂM SINH</th>
+                        <th>GIỚI TÍNH</th>
+                        <th>CẤP / ĐẲNG</th>
+                        <th>ĐỐI KHÁNG</th>
+                        <th>QUYỀN CÁ NHÂN</th>
+                        <th>QUYỀN ĐÔI</th>
+                        <th>QUYỀN ĐỒNG ĐỘI</th>
+                    </tr>
+                </thead>
+                <tbody id="tbData">
+                    <tr><td colspan="11" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0f8TgBhvr5ML6qJkoqsO_abo9ZKzWEDDdz5ibOQHaQzGIVgfaAUjyH_-686F2R8px/exec?action=getRegistrations";
+
+    let registrationData = [];
+
+    window.onload = function() {
+        loadDataFromSheet();
+    };
+
+    function formatDate(val) {
+        if (!val) return '---';
+        let strVal = String(val).trim();
+        if (!strVal) return '---';
+
+        if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(strVal)) return strVal;
+        if (/^\d{4}$/.test(strVal)) return strVal;
+
+        let cleanedStr = strVal.replace(/\s*\(.*?\)/, '');
+        let d = new Date(cleanedStr);
+        if (!isNaN(d.getTime())) {
+            let day = String(d.getDate()).padStart(2, '0');
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        return strVal;
+    }
+
+    function updateStatistics(dataList) {
+        document.getElementById('statTotal').innerText = dataList.length;
+
+        const maleCount = dataList.filter(item => {
+            const g = (item.gender || '').toString().trim().toLowerCase();
+            return g === 'nam';
+        }).length;
+        document.getElementById('statMale').innerText = maleCount;
+
+        const femaleCount = dataList.filter(item => {
+            const g = (item.gender || '').toString().trim().toLowerCase();
+            return g === 'nữ' || g === 'nu';
+        }).length;
+        document.getElementById('statFemale').innerText = femaleCount;
+
+        const uniqueClubs = new Set(
+            dataList
+                .map(item => (item.club || '').toString().trim())
+                .filter(club => club !== '' && club !== '---')
+        );
+        document.getElementById('statClubs').innerText = uniqueClubs.size;
+    }
+
+    async function loadDataFromSheet() {
+        const tbody = document.getElementById('tbData');
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+        
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const resData = await response.json();
+
+            if (resData.status === "success") {
+                registrationData = resData.data || [];
+                renderTable(registrationData);
+                updateStatistics(registrationData);
+            } else {
+                throw new Error(resData.message || "Lỗi không xác định");
+            }
+
+        } catch (error) {
+            console.error('Lỗi kết nối Google Sheet:', error);
+            tbody.innerHTML = `<tr><td colspan="11" class="empty-row" style="color: red;">Không thể tải dữ liệu. Vui lòng thử lại!</td></tr>`;
+        }
+    }
+
+    function renderTable(dataList) {
+        const tbody = document.getElementById('tbData');
+        tbody.innerHTML = '';
+
+        if (dataList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="empty-row">Chưa có dữ liệu đăng ký.</td></tr>';
+            return;
+        }
+
+        dataList.forEach((item, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="stt-col">${index + 1}</td>
+                    <td><span class="badge-club">${item.club || '---'}</span></td>
+                    <td class="code-val">${item.id || '---'}</td>
+                    <td><strong>${item.name || '---'}</strong></td>
+                    <td class="text-center">${formatDate(item.birthYear)}</td>
+                    <td class="text-center">${item.gender || '---'}</td>
+                    <td class="text-center">${item.rank || '---'}</td>
+                    <td>${item.doiKhang || '---'}</td>
+                    <td>${item.quyenCaNhan || '---'}</td>
+                    <td>${item.quyenDoi || '---'}</td>
+                    <td>${item.quyenDongDoi || '---'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function downloadExcel() {
+        if (registrationData.length === 0) {
+            alert("Không có dữ liệu để xuất Excel!");
+            return;
+        }
+
+        let csvContent = "\uFEFF";
+        csvContent += "STT,ĐƠN VỊ / CLB,MÃ HỘI VIÊN,HỌ TÊN,NĂM SINH,GIỚI TÍNH,CẤP / ĐẲNG,ĐỐI KHÁNG,QUYỀN CÁ NHÂN,QUYỀN ĐÔI,QUYỀN ĐỒNG ĐỘI\n";
+
+        registrationData.forEach((item, index) => {
+            const row = [
+                index + 1,
+                `"${(item.club || '').replace(/"/g, '""')}"`,
+                `"'${(item.id || '').replace(/"/g, '""')}"`,
+                `"${(item.name || '').replace(/"/g, '""')}"`,
+                `"'${formatDate(item.birthYear)}"`,
+                `"${(item.gender || '').replace(/"/g, '""')}"`,
+                `"${(item.rank || '').replace(/"/g, '""')}"`,
+                `"${(item.doiKhang || '').replace(/"/g, '""')}"`,
+                `"${(item.quyenCaNhan || '').replace(/"/g, '""')}"`,
+                `"${(item.quyenDoi || '').replace(/"/g, '""')}"`,
+                `"${(item.quyenDongDoi || '').replace(/"/g, '""')}"`
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "DanhSach_DangKy_ChiTiet.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>

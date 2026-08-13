@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ĐĂNG KÝ THI ĐẤU</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- SheetJS đọc/xuất Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1e3c72;
+            --primary-hover: #2a5298;
+            --accent-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --bg-body: #f4f6f9;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+        body { background-color: var(--bg-body); color: #333; padding: 10px; }
+
+        .container {
+            max-width: 1450px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: #fff;
+            padding: 12px 30px;
+            text-align: center;
+        }
+
+        .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .form-body { padding: 15px; }
+
+        .tabs-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab-btn-group { display: flex; gap: 8px; }
+
+        .tab-btn {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .btn-submit-header {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+            transition: all 0.2s;
+        }
+
+        .btn-submit-header:hover { background-color: #0b5ed7; transform: translateY(-1px); }
+
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group { margin-bottom: 10px; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        .form-control {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 13px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            outline: none;
+            background-color: #fff;
+        }
+        .form-control:focus { border-color: var(--accent-color); }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-primary { background-color: var(--accent-color); color: white; }
+        .btn-outline-primary { background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); }
+        .btn-danger { background: transparent; color: var(--danger-color); padding: 4px 8px; }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            max-height: 480px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            background-color: #f1f4f8;
+            color: #334155;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 10px;
+            border-bottom: 2px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            text-align: center;
+            position: sticky; top: 0; z-index: 10;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .stt-col { text-align: center; font-weight: 700; width: 50px; }
+        .hidden-file-input { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>ĐĂNG KÝ THI ĐẤU</h1>
+    </div>
+
+    <div class="form-body">
+        <form id="registrationForm" novalidate onsubmit="event.preventDefault(); handleSubmit();">
+            
+            <div class="tabs-nav">
+                <div class="tab-btn-group">
+                    <button type="button" class="tab-btn active" onclick="switchTab('tab-pane-1', this)">
+                        <i class="fa-solid fa-address-card"></i> 1. Thông Tin Đăng Ký
+                    </button>
+                    <button type="button" class="tab-btn" onclick="switchTab('tab-pane-2', this)">
+                        <i class="fa-solid fa-list-check"></i> 2. Nội Dung Đăng Ký
+                    </button>
+                </div>
+
+                <button type="submit" class="btn-submit-header" id="btnSubmit">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi Đăng Ký
+                </button>
+            </div>
+
+            <div id="tab-pane-1" class="tab-pane active">
+                <div class="section-box">
+                    <div class="section-title">
+                        <i class="fa-solid fa-address-card"></i>
+                        <span>Thông Tin CLB & HLV</span>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="clubName">Đơn vị / CLB <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" id="clubName" placeholder="Tên CLB ...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="coachName">HLV Phụ trách <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" id="coachName" placeholder="Nhập họ tên...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Điện thoại liên hệ <span style="color: red;">*</span></label>
+                            <input type="tel" class="form-control" id="phone" placeholder="0901234567">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-pane-2" class="tab-pane">
+                <div class="section-box">
+                    <div class="section-title">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Danh Sách Đăng Ký VĐV</span>
+                    </div>
+
+                    <div class="toolbar">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <a href="https://docs.google.com/spreadsheets/d/1QxwMfLzXS7L8nOmdmtofJu2IfAEe3qXsmEtDbtdSfOc/edit?gid=773166371#gid=773166371" target="_blank" class="btn btn-success">
+                                <i class="fa-solid fa-file-arrow-down"></i> Tải Đăng Ký Mẫu
+                            </a>
+                            <button type="button" class="btn btn-primary" onclick="triggerExcelImport()">
+                                <i class="fa-solid fa-file-excel"></i> Nhập Từ Excel
+                            </button>
+                            <input type="file" id="excelFileInput" class="hidden-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)">
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" onclick="addNewRow()">
+                            <i class="fa-solid fa-plus"></i> Thêm VĐV
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="stt-col">STT</th>
+                                    <th style="min-width: 150px;">MÃ HỘI VIÊN <span style="color: red;">*</span></th>
+                                    <th style="min-width: 170px;">ĐỐI KHÁNG</th>
+                                    <th style="min-width: 170px;">QUYỀN CÁ NHÂN</th>
+                                    <th style="min-width: 170px;">QUYỀN ĐÔI</th>
+                                    <th style="min-width: 170px;">QUYỀN ĐỒNG ĐỘI</th>
+                                    <th style="text-align: center; width: 50px;"><i class="fa-solid fa-trash-can"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="matchRegistrationTbody">
+                                <!-- Dữ liệu sinh tự động -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<datalist id="list-doi-khang"></datalist>
+<datalist id="list-quyen-ca-nhan"></datalist>
+<datalist id="list-quyen-doi"></datalist>
+<datalist id="list-quyen-dong-doi"></datalist>
+
+<script>
+    const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0f8TgBhvr5ML6qJkoqsO_abo9ZKzWEDDdz5ibOQHaQzGIVgfaAUjyH_-686F2R8px/exec";
+
+    window.onload = async function() {
+        for (let i = 0; i < 3; i++) {
+            addNewRow();
+        }
+        await loadDropdownsFromGoogleSheet();
+    };
+
+    async function loadDropdownsFromGoogleSheet() {
+        try {
+            const response = await fetch(GOOGLE_APP_SCRIPT_URL);
+            if (!response.ok) return;
+            const resData = await response.json();
+
+            if (resData.status === "success") {
+                updateDatalistOptions('list-doi-khang', resData.doiKhang || []);
+                updateDatalistOptions('list-quyen-ca-nhan', resData.quyenCaNhan || []);
+                updateDatalistOptions('list-quyen-doi', resData.quyenDoi || []);
+                updateDatalistOptions('list-quyen-dong-doi', resData.quyenDongDoi || []);
+            }
+        } catch (error) {
+            console.warn("Chưa nạp được danh mục tự động:", error);
+        }
+    }
+
+    function updateDatalistOptions(datalistId, items) {
+        const datalist = document.getElementById(datalistId);
+        if (datalist) {
+            datalist.innerHTML = items.map(item => `<option value="${item}">`).join('');
+        }
+    }
+
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (btnElement) btnElement.classList.add('active');
+
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function addNewRow(data = {}) {
+        const tbody = document.getElementById('matchRegistrationTbody');
+        const rowCount = tbody.children.length + 1;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="stt-col">${rowCount}</td>
+            <td>
+                <input type="text" class="form-control input-id" placeholder="V22-012345" value="${data.id || ''}">
+            </td>
+            <td>
+                <input type="text" class="form-control input-doi-khang" list="list-doi-khang" placeholder="" value="${data.doiKhang || ''}">
+            </td>
+            <td>
+                <input type="text" class="form-control input-quyen-ca-nhan" list="list-quyen-ca-nhan" placeholder="" value="${data.quyenCaNhan || ''}">
+            </td>
+            <td>
+                <input type="text" class="form-control input-quyen-doi" list="list-quyen-doi" placeholder="" value="${data.quyenDoi || ''}">
+            </td>
+            <td>
+                <input type="text" class="form-control input-quyen-dong-doi" list="list-quyen-dong-doi" placeholder="" value="${data.quyenDongDoi || ''}">
+            </td>
+            <td style="text-align: center;">
+                <button type="button" class="btn btn-danger" onclick="deleteRow(this)" title="Xóa dòng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        updateSTT();
+    }
+
+    function deleteRow(btn) {
+        const tbody = document.getElementById('matchRegistrationTbody');
+        if (tbody.children.length <= 1) {
+            alert("Bảng danh sách phải chứa ít nhất 1 dòng!");
+            return;
+        }
+        btn.closest('tr').remove();
+        updateSTT();
+    }
+
+    function updateSTT() {
+        document.querySelectorAll('#matchRegistrationTbody tr').forEach((row, index) => {
+            row.querySelector('.stt-col').textContent = index + 1;
+        });
+    }
+
+    function triggerExcelImport() {
+        document.getElementById('excelFileInput').click();
+    }
+
+    function handleExcelImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            const targetSheetName = workbook.SheetNames.includes("Mau_Dang_Ky") ? "Mau_Dang_Ky" : workbook.SheetNames[0];
+            const firstSheet = workbook.Sheets[targetSheetName];
+            const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+            if (json.length <= 1) {
+                alert("File Excel chọn không có dữ liệu!");
+                return;
+            }
+
+            document.getElementById('matchRegistrationTbody').innerHTML = '';
+
+            for (let i = 1; i < json.length; i++) {
+                const row = json[i];
+                if (!row || row.length === 0 || !row[0]) continue;
+
+                addNewRow({
+                    id: row[0] || '',
+                    doiKhang: row[1] || '',
+                    quyenCaNhan: row[2] || '',
+                    quyenDoi: row[3] || '',
+                    quyenDongDoi: row[4] || ''
+                });
+            }
+            alert("Nhập danh sách từ Excel thành công!");
+            event.target.value = '';
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    async function handleSubmit() {
+        const clubName = document.getElementById('clubName').value.trim();
+        const coachName = document.getElementById('coachName').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+
+        if (!clubName || !coachName || !phone) {
+            alert('Vui lòng nhập đầy đủ thông tin Đơn vị, HLV và Số điện thoại!');
+            switchTab('tab-pane-1', document.querySelectorAll('.tab-btn')[0]);
+            return;
+        }
+
+        const rows = document.querySelectorAll('#matchRegistrationTbody tr');
+        const registrations = [];
+
+        rows.forEach((row) => {
+            const id = row.querySelector('.input-id').value.trim();
+            const doiKhang = row.querySelector('.input-doi-khang').value.trim();
+            const quyenCaNhan = row.querySelector('.input-quyen-ca-nhan').value.trim();
+            const quyenDoi = row.querySelector('.input-quyen-doi').value.trim();
+            const quyenDongDoi = row.querySelector('.input-quyen-dong-doi').value.trim();
+
+            if (id) {
+                registrations.push({ id, doiKhang, quyenCaNhan, quyenDoi, quyenDongDoi });
+            }
+        });
+
+        if (registrations.length === 0) {
+            alert('Vui lòng điền thông tin Mã Hội Viên cho ít nhất 1 vận động viên!');
+            switchTab('tab-pane-2', document.querySelectorAll('.tab-btn')[1]);
+            return;
+        }
+
+        const btnSubmit = document.getElementById('btnSubmit');
+        const originalText = btnSubmit.innerHTML;
+
+        try {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+
+            const payload = {
+                clubName: clubName,
+                coachName: coachName,
+                phone: phone,
+                registrations: registrations
+            };
+
+            await fetch(GOOGLE_APP_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            });
+
+            alert(`🎉 GỬI ĐĂNG KÝ THÀNH CÔNG!\n\nĐơn vị: ${clubName}\nHLV: ${coachName}\nSố lượng VĐV: ${registrations.length}`);
+            
+            document.getElementById('registrationForm').reset();
+            document.getElementById('matchRegistrationTbody').innerHTML = '';
+            for (let i = 0; i < 3; i++) addNewRow();
+            switchTab('tab-pane-1', document.querySelectorAll('.tab-btn')[0]);
+
+        } catch (error) {
+            console.error("Error sending data:", error);
+            alert("Đã xảy ra lỗi trong quá trình gửi! Vui lòng thử lại.");
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalText;
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thi Đấu</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            background-image: linear-gradient(rgba(244, 247, 246, 0.9), rgba(244, 247, 246, 0.9)), url('logo.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 500px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px; 
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(5px);
+        }
+
+        .logo-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            border: 3px solid #fff;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            color: #1e3c72;
+            font-size: clamp(20px, 4vw, 22px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        h2 {
+            margin-bottom: 35px;
+            color: #2c3e50;
+            font-size: clamp(16px, 3.5vw, 18px);
+            font-weight: 500;
+        }
+
+        .tab-menu {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .tab-btn {
+            flex: 1;
+            text-decoration: none;
+            padding: 12px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn.register { background-color: #0d6efd; color: white; }
+        .tab-btn.register:hover { background-color: #0b5ed7; }
+
+        .tab-btn.danhsach { background-color: #198754; color: white; }
+        .tab-btn.danhsach:hover { background-color: #157347; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: #fff;
+            width: 95%; height: 95vh;
+            max-width: 1400px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: scaleUp 0.25s ease-out;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 30px; height: 30px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .modal-iframe {
+            width: 100%; height: 100%;
+            border: none;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="logo.jpg" alt="Logo Taekwondo" class="logo-img" onerror="this.style.display='none'">
+        
+        <h1>LIÊN ĐOÀN TAEKWONDO TP. HÀ NỘI</h1>
+        <h2>GIẢI TAEKWONDO HÀ NỘI MỞ RỘNG</h2>
+        
+        <div class="tab-menu">
+            <button type="button" onclick="openModal('dangky.html')" class="tab-btn register">
+                <i class="fa-solid fa-pen-to-square"></i> Đăng Ký Thi Đấu
+            </button>
+            <button type="button" onclick="openModal('danhsach.html')" class="tab-btn danhsach">
+                <i class="fa-solid fa-list-check"></i> Xem Danh Sách
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal hiển thị Iframe -->
+    <div id="popupModal" class="modal">
+        <div class="modal-content">
+            <button type="button" class="close-btn" onclick="closeModal()" title="Đóng">&times;</button>
+            <iframe id="modalIframe" class="modal-iframe" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        function openModal(url) {
+            const modal = document.getElementById('popupModal');
+            const iframe = document.getElementById('modalIframe');
+            iframe.src = url;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('popupModal');
+            const iframe = document.getElementById('modalIframe');
+            modal.classList.remove('active');
+            iframe.src = ''; 
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('popupModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
