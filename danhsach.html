@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh Sách Đăng Ký Thi Đấu</title>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <style>
@@ -37,7 +35,6 @@
 
         .header h1 { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* KHU VỰC THỐNG KÊ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -84,7 +81,7 @@
             padding-bottom: 8px;
         }
 
-        .btn-group { display: flex; gap: 8px; }
+        .btn-group { display: flex; gap: 8px; align-items: center; }
 
         .btn {
             border: none; padding: 8px 14px;
@@ -97,6 +94,8 @@
         .btn-success { background-color: var(--success-color); color: white; }
         .btn-primary { background-color: var(--accent-color); color: white; }
         .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .sync-status { font-size: 12px; color: #64748b; margin-right: 5px; font-style: italic; }
 
         .table-responsive {
             width: 100%;
@@ -185,8 +184,9 @@
         <div class="section-title">
             <span><i class="fa-solid fa-table"></i> Danh Sách Chi Tiết</span>
             <div class="btn-group">
-                <button class="btn btn-primary" onclick="loadDataFromSheet()">
-                    <i class="fa-solid fa-rotate"></i> Tải Lại Dữ Liệu
+                <span id="syncStatus" class="sync-status"></span>
+                <button class="btn btn-primary" onclick="loadDataFromSheet(true)">
+                    <i id="syncIcon" class="fa-solid fa-rotate"></i> Tải Lại Dữ Liệu
                 </button>
                 <button class="btn btn-success" onclick="downloadExcel()">
                     <i class="fa-solid fa-file-excel"></i> Xuất Excel
@@ -221,11 +221,26 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0f8TgBhvr5ML6qJkoqsO_abo9ZKzWEDDdz5ibOQHaQzGIVgfaAUjyH_-686F2R8px/exec?action=getRegistrations";
+    const CACHE_KEY = "CACHE_REGISTRATION_DATA";
 
     let registrationData = [];
 
     window.onload = function() {
-        loadDataFromSheet();
+        // Ưu tiên hiển thị ngay từ Cache
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            try {
+                registrationData = JSON.parse(cachedData);
+                renderTable(registrationData);
+                updateStatistics(registrationData);
+                document.getElementById('syncStatus').innerText = 'Dữ liệu bộ nhớ tạm';
+            } catch (e) {
+                console.error("Lỗi đọc cache:", e);
+            }
+        }
+        
+        // Gọi API cập nhật ngầm
+        loadDataFromSheet(false);
     };
 
     function formatDate(val) {
@@ -251,74 +266,90 @@
     function updateStatistics(dataList) {
         document.getElementById('statTotal').innerText = dataList.length;
 
-        const maleCount = dataList.filter(item => {
+        let maleCount = 0;
+        let femaleCount = 0;
+        const uniqueClubs = new Set();
+
+        dataList.forEach(item => {
             const g = (item.gender || '').toString().trim().toLowerCase();
-            return g === 'nam';
-        }).length;
+            if (g === 'nam') maleCount++;
+            else if (g === 'nữ' || g === 'nu') femaleCount++;
+
+            const club = (item.club || '').toString().trim();
+            if (club && club !== '---') uniqueClubs.add(club);
+        });
+
         document.getElementById('statMale').innerText = maleCount;
-
-        const femaleCount = dataList.filter(item => {
-            const g = (item.gender || '').toString().trim().toLowerCase();
-            return g === 'nữ' || g === 'nu';
-        }).length;
         document.getElementById('statFemale').innerText = femaleCount;
-
-        const uniqueClubs = new Set(
-            dataList
-                .map(item => (item.club || '').toString().trim())
-                .filter(club => club !== '' && club !== '---')
-        );
         document.getElementById('statClubs').innerText = uniqueClubs.size;
     }
 
-    async function loadDataFromSheet() {
+    async function loadDataFromSheet(isManualRefresh = false) {
+        const syncStatus = document.getElementById('syncStatus');
+        const syncIcon = document.getElementById('syncIcon');
         const tbody = document.getElementById('tbData');
-        tbody.innerHTML = '<tr><td colspan="11" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
-        
+
+        // Nếu chưa có cache hoặc người dùng chủ động click Refresh
+        if (registrationData.length === 0 || isManualRefresh) {
+            tbody.innerHTML = '<tr><td colspan="11" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+        }
+
+        syncIcon.classList.add('fa-spin');
+        syncStatus.innerText = 'Đang đồng bộ...';
+
         try {
             const response = await fetch(SCRIPT_URL);
             const resData = await response.json();
 
             if (resData.status === "success") {
                 registrationData = resData.data || [];
+                
+                // Lưu cache mới
+                localStorage.setItem(CACHE_KEY, JSON.stringify(registrationData));
+
                 renderTable(registrationData);
                 updateStatistics(registrationData);
+                syncStatus.innerText = 'Đã cập nhật mới nhất';
             } else {
                 throw new Error(resData.message || "Lỗi không xác định");
             }
-
         } catch (error) {
             console.error('Lỗi kết nối Google Sheet:', error);
-            tbody.innerHTML = `<tr><td colspan="11" class="empty-row" style="color: red;">Không thể tải dữ liệu. Vui lòng thử lại!</td></tr>`;
+            if (registrationData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="empty-row" style="color: red;">Không thể tải dữ liệu. Vui lòng thử lại!</td></tr>`;
+            }
+            syncStatus.innerText = 'Lỗi đồng bộ';
+        } finally {
+            syncIcon.classList.remove('fa-spin');
         }
     }
 
+    // Tối ưu DOM rendering cực nhanh với Array.map + join
     function renderTable(dataList) {
         const tbody = document.getElementById('tbData');
-        tbody.innerHTML = '';
 
         if (dataList.length === 0) {
             tbody.innerHTML = '<tr><td colspan="11" class="empty-row">Chưa có dữ liệu đăng ký.</td></tr>';
             return;
         }
 
-        dataList.forEach((item, index) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td class="stt-col">${index + 1}</td>
-                    <td><span class="badge-club">${item.club || '---'}</span></td>
-                    <td class="code-val">${item.id || '---'}</td>
-                    <td><strong>${item.name || '---'}</strong></td>
-                    <td class="text-center">${formatDate(item.birthYear)}</td>
-                    <td class="text-center">${item.gender || '---'}</td>
-                    <td class="text-center">${item.rank || '---'}</td>
-                    <td>${item.doiKhang || '---'}</td>
-                    <td>${item.quyenCaNhan || '---'}</td>
-                    <td>${item.quyenDoi || '---'}</td>
-                    <td>${item.quyenDongDoi || '---'}</td>
-                </tr>
-            `;
-        });
+        const htmlRows = dataList.map((item, index) => `
+            <tr>
+                <td class="stt-col">${index + 1}</td>
+                <td><span class="badge-club">${item.club || '---'}</span></td>
+                <td class="code-val">${item.id || '---'}</td>
+                <td><strong>${item.name || '---'}</strong></td>
+                <td class="text-center">${formatDate(item.birthYear)}</td>
+                <td class="text-center">${item.gender || '---'}</td>
+                <td class="text-center">${item.rank || '---'}</td>
+                <td>${item.doiKhang || '---'}</td>
+                <td>${item.quyenCaNhan || '---'}</td>
+                <td>${item.quyenDoi || '---'}</td>
+                <td>${item.quyenDongDoi || '---'}</td>
+            </tr>
+        `).join('');
+
+        tbody.innerHTML = htmlRows;
     }
 
     function downloadExcel() {
