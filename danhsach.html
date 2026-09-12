@@ -221,27 +221,52 @@
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0f8TgBhvr5ML6qJkoqsO_abo9ZKzWEDDdz5ibOQHaQzGIVgfaAUjyH_-686F2R8px/exec?action=getRegistrations";
-    const CACHE_KEY = "CACHE_REGISTRATION_DATA";
+const CACHE_KEY = "CACHE_REGISTRATION_DATA";
 
-    let registrationData = [];
+let registrationData = [];
 
-    window.onload = function() {
-        // Ưu tiên hiển thị ngay từ Cache
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        if (cachedData) {
-            try {
-                registrationData = JSON.parse(cachedData);
-                renderTable(registrationData);
-                updateStatistics(registrationData);
-                document.getElementById('syncStatus').innerText = 'Dữ liệu bộ nhớ tạm';
-            } catch (e) {
-                console.error("Lỗi đọc cache:", e);
-            }
-        }
+// Thiết lập Kênh đồng bộ Realtime giữa các tab cùng trình duyệt
+const syncChannel = new BroadcastChannel('registration_sync_channel');
+
+syncChannel.onmessage = (event) => {
+    if (event.data && event.data.type === 'NEW_REGISTRATION') {
+        // Cập nhật giao diện lập tức không cần chờ network
+        const newItems = event.data.items || [];
+        registrationData = [...registrationData, ...newItems];
         
-        // Gọi API cập nhật ngầm
+        // Ghi đè vào Cache trình duyệt
+        localStorage.setItem(CACHE_KEY, JSON.stringify(registrationData));
+        
+        // Vẽ lại giao diện
+        renderTable(registrationData);
+        updateStatistics(registrationData);
+        
+        document.getElementById('syncStatus').innerText = 'Đã nhận đăng ký mới (Realtime)';
+    }
+};
+
+window.onload = function() {
+    // 1. Đọc từ Local Cache để hiển thị trong 0.1 giây
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+        try {
+            registrationData = JSON.parse(cachedData);
+            renderTable(registrationData);
+            updateStatistics(registrationData);
+            
+        } catch (e) {
+            console.error("Lỗi đọc cache:", e);
+        }
+    }
+    
+    // 2. Tải dữ liệu chính thức từ Sheet
+    loadDataFromSheet(false);
+
+    // 3. Tự động đồng bộ ngầm định kỳ 30 giây (Auto-polling)
+    setInterval(() => {
         loadDataFromSheet(false);
-    };
+    }, 30000);
+};
 
     function formatDate(val) {
         if (!val) return '---';
@@ -291,11 +316,10 @@
 
         // Nếu chưa có cache hoặc người dùng chủ động click Refresh
         if (registrationData.length === 0 || isManualRefresh) {
-            tbody.innerHTML = '<tr><td colspan="11" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Tải dữ liệu...</td></tr>';
         }
 
-        syncIcon.classList.add('fa-spin');
-        syncStatus.innerText = 'Đang đồng bộ...';
+        
 
         try {
             const response = await fetch(SCRIPT_URL);
@@ -309,7 +333,7 @@
 
                 renderTable(registrationData);
                 updateStatistics(registrationData);
-                syncStatus.innerText = 'Đã cập nhật mới nhất';
+                
             } else {
                 throw new Error(resData.message || "Lỗi không xác định");
             }

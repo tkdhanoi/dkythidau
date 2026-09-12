@@ -8,15 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- SheetJS đọc Excel -->
+    <!-- SheetJS đọc/xuất Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- ExcelJS xuất Excel mẫu có Dropdown List -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
     <style>
         :root {
-            --primary-color: #1e3c72;
+            --primary-color: #1e3c72;léubmit
             --primary-hover: #2a5298;
             --accent-color: #0d6efd;
             --success-color: #198754;
@@ -27,10 +24,10 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
-        body { background-color: var(--bg-body); color: #333; padding: 15px; }
+        body { background-color: var(--bg-body); color: #333; padding: 10px; }
 
         .container {
-            max-width: 1300px;
+            max-width: 1450px;
             margin: 0 auto;
             background: var(--card-bg);
             border-radius: 12px;
@@ -41,13 +38,13 @@
         .header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
             color: #fff;
-            padding: 20px 30px;
+            padding: 12px 30px;
             text-align: center;
         }
 
-        .header h1 { font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        .header h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .form-body { padding: 20px; }
+        .form-body { padding: 15px; }
 
         .tabs-nav {
             display: flex;
@@ -185,7 +182,7 @@
             padding: 12px 10px;
             border-bottom: 2px solid var(--border-color);
             border-right: 1px solid var(--border-color);
-            text-align: left;
+            text-align: center;
             position: sticky; top: 0; z-index: 10;
             white-space: nowrap;
         }
@@ -214,10 +211,10 @@
             <div class="tabs-nav">
                 <div class="tab-btn-group">
                     <button type="button" class="tab-btn active" onclick="switchTab('tab-pane-1', this)">
-                        <i class="fa-solid fa-address-card"></i> 1. Thông Tin Đăng ký
+                        <i class="fa-solid fa-address-card"></i> 1. Thông Tin Đăng Ký
                     </button>
                     <button type="button" class="tab-btn" onclick="switchTab('tab-pane-2', this)">
-                        <i class="fa-solid fa-list-check"></i> 2. Nội Dung Đăng ký
+                        <i class="fa-solid fa-list-check"></i> 2. Nội Dung Đăng Ký
                     </button>
                 </div>
 
@@ -254,16 +251,16 @@
                 <div class="section-box">
                     <div class="section-title">
                         <i class="fa-solid fa-list-check"></i>
-                        <span>Danh Sách Đăng Ký</span>
+                        <span>Danh Sách Đăng Ký VĐV</span>
                     </div>
 
                     <div class="toolbar">
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-success" onclick="downloadSampleExcel()">
-                                <i class="fa-solid fa-file-arrow-down"></i> Tải đăng ký mẫu
-                            </button>
+                            <a href="https://docs.google.com/spreadsheets/d/1QxwMfLzXS7L8nOmdmtofJu2IfAEe3qXsmEtDbtdSfOc/edit?gid=773166371#gid=773166371" target="_blank" class="btn btn-success">
+                                <i class="fa-solid fa-file-arrow-down"></i> Tải Đăng Ký Mẫu
+                            </a>
                             <button type="button" class="btn btn-primary" onclick="triggerExcelImport()">
-                                <i class="fa-solid fa-file-excel"></i> Nhập từ Excel
+                                <i class="fa-solid fa-file-excel"></i> Nhập Từ Excel
                             </button>
                             <input type="file" id="excelFileInput" class="hidden-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)">
                         </div>
@@ -297,7 +294,6 @@
     </div>
 </div>
 
-<!-- CÁC CHỦ ĐỀ GỢI Ý (DATALIST CHUNG) -->
 <datalist id="list-doi-khang"></datalist>
 <datalist id="list-quyen-ca-nhan"></datalist>
 <datalist id="list-quyen-doi"></datalist>
@@ -306,14 +302,6 @@
 <script>
     const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0f8TgBhvr5ML6qJkoqsO_abo9ZKzWEDDdz5ibOQHaQzGIVgfaAUjyH_-686F2R8px/exec";
 
-    // Lưu trữ danh mục gợi ý toàn cục để nhúng vào Excel
-    let categoriesData = {
-        doiKhang: [],
-        quyenCaNhan: [],
-        quyenDoi: [],
-        quyenDongDoi: []
-    };
-
     window.onload = async function() {
         for (let i = 0; i < 3; i++) {
             addNewRow();
@@ -321,31 +309,20 @@
         await loadDropdownsFromGoogleSheet();
     };
 
-    // Hàm đọc danh mục từ Google Sheet
     async function loadDropdownsFromGoogleSheet() {
         try {
             const response = await fetch(GOOGLE_APP_SCRIPT_URL);
-            if (!response.ok) throw new Error("Không thể kết nối đến App Script!");
-            
+            if (!response.ok) return;
             const resData = await response.json();
 
             if (resData.status === "success") {
-                categoriesData.doiKhang = resData.doiKhang || [];
-                categoriesData.quyenCaNhan = resData.quyenCaNhan || [];
-                categoriesData.quyenDoi = resData.quyenDoi || [];
-                categoriesData.quyenDongDoi = resData.quyenDongDoi || [];
-
-                updateDatalistOptions('list-doi-khang', categoriesData.doiKhang);
-                updateDatalistOptions('list-quyen-ca-nhan', categoriesData.quyenCaNhan);
-                updateDatalistOptions('list-quyen-doi', categoriesData.quyenDoi);
-                updateDatalistOptions('list-quyen-dong-doi', categoriesData.quyenDongDoi);
-                console.log("Đã tải danh mục gợi ý thành công!");
-            } else {
-                console.error("Lỗi từ App Script:", resData.message);
+                updateDatalistOptions('list-doi-khang', resData.doiKhang || []);
+                updateDatalistOptions('list-quyen-ca-nhan', resData.quyenCaNhan || []);
+                updateDatalistOptions('list-quyen-doi', resData.quyenDoi || []);
+                updateDatalistOptions('list-quyen-dong-doi', resData.quyenDongDoi || []);
             }
-
         } catch (error) {
-            console.warn("Chưa tải được danh mục tự động từ Google Sheet:", error);
+            console.warn("Chưa nạp được danh mục tự động:", error);
         }
     }
 
@@ -353,162 +330,6 @@
         const datalist = document.getElementById(datalistId);
         if (datalist) {
             datalist.innerHTML = items.map(item => `<option value="${item}">`).join('');
-        }
-    }
-
-    /* -------------------------------------------------------------
-       HÀM TẠO VÀ TẢI FILE EXCEL MẪU CÓ THÔNG TIN ĐẦU FILE VÀ DROPDOWN
-    ---------------------------------------------------------------- */
-    async function downloadSampleExcel() {
-        try {
-            const workbook = new ExcelJS.Workbook();
-
-            // 1. Sheet chính
-            const wsMain = workbook.addWorksheet('Mau_Dang_Ky');
-
-            // 2. Sheet lưu Danh mục thi đấu (Ẩn đi)
-            const wsData = workbook.addWorksheet('DanhMuc');
-            wsData.state = 'hidden';
-
-            // Ghi dữ liệu danh mục vào Sheet DanhMuc
-            const maxLen = Math.max(
-                categoriesData.doiKhang.length,
-                categoriesData.quyenCaNhan.length,
-                categoriesData.quyenDoi.length,
-                categoriesData.quyenDongDoi.length
-            );
-
-            for (let i = 0; i < maxLen; i++) {
-                wsData.addRow([
-                    categoriesData.doiKhang[i] || '',
-                    categoriesData.quyenCaNhan[i] || '',
-                    categoriesData.quyenDoi[i] || '',
-                    categoriesData.quyenDongDoi[i] || ''
-                ]);
-            }
-
-            // Thiết lập độ rộng cột cho Sheet Mau_Dang_Ky
-            wsMain.columns = [
-                { width: 22 }, // Cột A: MÃ HỘI VIÊN
-                { width: 28 }, // Cột B: ĐỐI KHÁNG
-                { width: 28 }, // Cột C: QUYỀN CÁ NHÂN
-                { width: 28 }, // Cột D: QUYỀN ĐÔI
-                { width: 28 }  // Cột E: QUYỀN ĐỒNG ĐỘI
-            ];
-
-            // --- HÀNG 1: TIÊU ĐỀ BẢNG MẪU ---
-            wsMain.mergeCells('A1:E1');
-            const titleCell = wsMain.getCell('A1');
-            titleCell.value = 'DANH SÁCH ĐĂNG KÝ THI ĐẤU';
-            titleCell.font = { name: 'Roboto', size: 16, bold: true };
-            titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-            wsMain.getRow(1).height = 35;
-
-            // --- HÀNG 2 - 4: THÔNG TIN ĐƠN VỊ, HLV, ĐIỆN THOẠI ---
-            wsMain.getCell('B2').value = 'Đơn vị/ CLB:';
-            wsMain.getCell('B3').value = 'HLV trưởng:';
-            wsMain.getCell('B4').value = 'Điện thoại:';
-
-            ['B2', 'B3', 'B4'].forEach(cellRef => {
-                const cell = wsMain.getCell(cellRef);
-                cell.font = { name: 'Roboto', size: 12, bold: true };
-                cell.alignment = { vertical: 'middle', horizontal: 'left' };
-            });
-
-            wsMain.getRow(2).height = 22;
-            wsMain.getRow(3).height = 22;
-            wsMain.getRow(4).height = 22;
-            wsMain.getRow(5).height = 15; // Dòng trống ngăn cách
-
-            // --- HÀNG 6: HEADER BẢNG DỮ LIỆU ---
-            const headers = [
-                'MÃ HỘI VIÊN (*)',
-                'ĐỐI KHÁNG',
-                'QUYỀN CÁ NHÂN',
-                'QUYỀN ĐÔI',
-                'QUYỀN ĐỒNG ĐỘI'
-            ];
-
-            const headerRow = wsMain.getRow(6);
-            headers.forEach((headerText, index) => {
-                const cell = headerRow.getCell(index + 1);
-                cell.value = headerText;
-                cell.font = { name: 'Roboto', bold: true, color: { argb: 'FFFFFF' }, size: 11 };
-                cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: '1E3C72' }
-                };
-                cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            });
-            headerRow.height = 28;
-
-            // --- HÀNG 7 TRỞ ĐI: CÁC DÒNG DỮ LIỆU CÓ DROPDOWN LIST ---
-            const startRow = 7;
-            const rowCount = 30;
-            for (let i = startRow; i < startRow + rowCount; i++) {
-                const row = wsMain.getRow(i);
-                row.height = 22;
-
-                row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                    if (colNumber <= 5) {
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'DEE2E6' } },
-                            left: { style: 'thin', color: { argb: 'DEE2E6' } },
-                            bottom: { style: 'thin', color: { argb: 'DEE2E6' } },
-                            right: { style: 'thin', color: { argb: 'DEE2E6' } }
-                        };
-                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                    }
-                });
-
-                // Gán Dropdown List cho từng ô
-                if (categoriesData.doiKhang.length > 0) {
-                    wsMain.getCell(`B${i}`).dataValidation = {
-                        type: 'list',
-                        allowBlank: true,
-                        formulae: [`DanhMuc!$A$1:$A$${categoriesData.doiKhang.length}`]
-                    };
-                }
-
-                if (categoriesData.quyenCaNhan.length > 0) {
-                    wsMain.getCell(`C${i}`).dataValidation = {
-                        type: 'list',
-                        allowBlank: true,
-                        formulae: [`DanhMuc!$B$1:$B$${categoriesData.quyenCaNhan.length}`]
-                    };
-                }
-
-                if (categoriesData.quyenDoi.length > 0) {
-                    wsMain.getCell(`D${i}`).dataValidation = {
-                        type: 'list',
-                        allowBlank: true,
-                        formulae: [`DanhMuc!$C$1:$C$${categoriesData.quyenDoi.length}`]
-                    };
-                }
-
-                if (categoriesData.quyenDongDoi.length > 0) {
-                    wsMain.getCell(`E${i}`).dataValidation = {
-                        type: 'list',
-                        allowBlank: true,
-                        formulae: [`DanhMuc!$D$1:$D$${categoriesData.quyenDongDoi.length}`]
-                    };
-                }
-            }
-
-            // Tạo file và kích hoạt tải về
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Mau_Dang_Ky_Thi_Dau.xlsx';
-            a.click();
-            window.URL.revokeObjectURL(url);
-
-        } catch (error) {
-            console.error("Lỗi khi tạo file Excel mẫu:", error);
-            alert("Có lỗi xảy ra khi tạo file Excel mẫu!");
         }
     }
 
@@ -572,9 +393,6 @@
         document.getElementById('excelFileInput').click();
     }
 
-    /* -------------------------------------------------------------
-       HÀM NHẬP DỮ LIỆU TỪ EXCEL (BỎ QUA HEADER/TIÊU ĐỀ CHÍNH)
-    ---------------------------------------------------------------- */
     function handleExcelImport(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -588,129 +406,104 @@
             const firstSheet = workbook.Sheets[targetSheetName];
             const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-            if (!json || json.length === 0) {
+            if (json.length <= 1) {
                 alert("File Excel chọn không có dữ liệu!");
                 return;
             }
 
-            // Quét tìm dòng tiêu đề của bảng (chứa chữ "MÃ HỘI VIÊN")
-            let headerRowIndex = -1;
-            for (let i = 0; i < json.length; i++) {
-                const row = json[i];
-                if (row && row.some(cell => String(cell).toUpperCase().includes("MÃ HỘI VIÊN") || String(cell).toUpperCase().includes("MA HOI VIEN"))) {
-                    headerRowIndex = i;
-                    break;
-                }
-            }
-
-            // Xác định dòng bắt đầu lấy dữ liệu (dòng kế tiếp dòng tiêu đề bảng)
-            let dataStartIndex = (headerRowIndex !== -1) ? headerRowIndex + 1 : 1;
-
             document.getElementById('matchRegistrationTbody').innerHTML = '';
-            let importedCount = 0;
 
-            for (let i = dataStartIndex; i < json.length; i++) {
+            for (let i = 1; i < json.length; i++) {
                 const row = json[i];
-                if (!row || row.length === 0) continue;
-
-                const id = row[0] ? String(row[0]).trim() : '';
-                const doiKhang = row[1] ? String(row[1]).trim() : '';
-                const quyenCaNhan = row[2] ? String(row[2]).trim() : '';
-                const quyenDoi = row[3] ? String(row[3]).trim() : '';
-                const quyenDongDoi = row[4] ? String(row[4]).trim() : '';
-
-                // Bỏ qua các dòng hoàn toàn trống
-                if (!id && !doiKhang && !quyenCaNhan && !quyenDoi && !quyenDongDoi) continue;
+                if (!row || row.length === 0 || !row[0]) continue;
 
                 addNewRow({
-                    id: id,
-                    doiKhang: doiKhang,
-                    quyenCaNhan: quyenCaNhan,
-                    quyenDoi: quyenDoi,
-                    quyenDongDoi: quyenDongDoi
+                    id: row[0] || '',
+                    doiKhang: row[1] || '',
+                    quyenCaNhan: row[2] || '',
+                    quyenDoi: row[3] || '',
+                    quyenDongDoi: row[4] || ''
                 });
-                importedCount++;
             }
-
-            if (importedCount === 0) {
-                alert("Không tìm thấy danh sách VĐV hợp lệ trong file Excel!");
-                for (let i = 0; i < 3; i++) addNewRow();
-            } else {
-                alert(`Nhập danh sách thành công (${importedCount} VĐV)!`);
-            }
+            alert("Nhập danh sách từ Excel thành công!");
             event.target.value = '';
         };
         reader.readAsArrayBuffer(file);
     }
 
-    async function handleSubmit() {
-        const clubName = document.getElementById('clubName').value.trim();
-        const coachName = document.getElementById('coachName').value.trim();
-        const phone = document.getElementById('phone').value.trim();
+    // Khởi tạo kênh phát tín hiệu đồng bộ giữa các tab
+const syncChannel = new BroadcastChannel('registration_sync_channel');
 
-        if (!clubName || !coachName || !phone) {
-            alert('Vui lòng nhập đầy đủ thông tin Đơn vị, HLV và Số điện thoại!');
-            switchTab('tab-pane-1', document.querySelectorAll('.tab-btn')[0]);
-            return;
+async function handleSubmit() {
+    const clubName = document.getElementById('clubName').value.trim();
+    const coachName = document.getElementById('coachName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    if (!clubName || !coachName || !phone) {
+        alert('Vui lòng nhập đầy đủ thông tin Đơn vị, HLV và Số điện thoại!');
+        switchTab('tab-pane-1', document.querySelectorAll('.tab-btn')[0]);
+        return;
+    }
+
+    const rows = document.querySelectorAll('#matchRegistrationTbody tr');
+    const registrations = [];
+
+    rows.forEach((row) => {
+        const id = row.querySelector('.input-id').value.trim();
+        const doiKhang = row.querySelector('.input-doi-khang').value.trim();
+        const quyenCaNhan = row.querySelector('.input-quyen-ca-nhan').value.trim();
+        const quyenDoi = row.querySelector('.input-quyen-doi').value.trim();
+        const quyenDongDoi = row.querySelector('.input-quyen-dong-doi').value.trim();
+
+        if (id) {
+            registrations.push({ club: clubName, id, doiKhang, quyenCaNhan, quyenDoi, quyenDongDoi });
         }
+    });
 
-        const rows = document.querySelectorAll('#matchRegistrationTbody tr');
-        const registrations = [];
+    if (registrations.length === 0) {
+        alert('Vui lòng điền thông tin Mã Hội Viên cho ít nhất 1 vận động viên!');
+        switchTab('tab-pane-2', document.querySelectorAll('.tab-btn')[1]);
+        return;
+    }
 
-        rows.forEach((row) => {
-            const id = row.querySelector('.input-id').value.trim();
-            const doiKhang = row.querySelector('.input-doi-khang').value.trim();
-            const quyenCaNhan = row.querySelector('.input-quyen-ca-nhan').value.trim();
-            const quyenDoi = row.querySelector('.input-quyen-doi').value.trim();
-            const quyenDongDoi = row.querySelector('.input-quyen-dong-doi').value.trim();
+    const btnSubmit = document.getElementById('btnSubmit');
+    const originalText = btnSubmit.innerHTML;
 
-            if (id) {
-                registrations.push({ id, doiKhang, quyenCaNhan, quyenDoi, quyenDongDoi });
-            }
+    try {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+
+        const payload = { clubName, coachName, phone, registrations };
+
+        // 1. Phát tín hiệu Realtime tức thì cho file danhsach.html
+        syncChannel.postMessage({
+            type: 'NEW_REGISTRATION',
+            items: registrations
         });
 
-        if (registrations.length === 0) {
-            alert('Vui lòng điền thông tin Mã Hội Viên cho ít nhất 1 vận động viên!');
-            switchTab('tab-pane-2', document.querySelectorAll('.tab-btn')[1]);
-            return;
-        }
+        // 2. Gửi dữ liệu ngầm lên Google Sheet
+        fetch(GOOGLE_APP_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+        });
 
-        const btnSubmit = document.getElementById('btnSubmit');
-        const originalText = btnSubmit.innerHTML;
+        alert(`🎉 GỬI ĐĂNG KÝ THÀNH CÔNG!\n\nĐơn vị: ${clubName}\nSố lượng VĐV: ${registrations.length}`);
 
-        try {
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+        document.getElementById('registrationForm').reset();
+        document.getElementById('matchRegistrationTbody').innerHTML = '';
+        for (let i = 0; i < 3; i++) addNewRow();
+        switchTab('tab-pane-1', document.querySelectorAll('.tab-btn')[0]);
 
-            const payload = {
-                clubName: clubName,
-                coachName: coachName,
-                phone: phone,
-                registrations: registrations
-            };
-
-            await fetch(GOOGLE_APP_SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            });
-
-            alert(`🎉 GỬI ĐĂNG KÝ THÀNH CÔNG!\n\nĐơn vị: ${clubName}\nHLV: ${coachName}\nSố lượng VĐV: ${registrations.length}`);
-            
-            document.getElementById('registrationForm').reset();
-            document.getElementById('matchRegistrationTbody').innerHTML = '';
-            for (let i = 0; i < 3; i++) addNewRow();
-            switchTab('tab-pane-1', document.querySelectorAll('.tab-btn')[0]);
-
-        } catch (error) {
-            console.error("Error sending data:", error);
-            alert("Đã xảy ra lỗi trong quá trình gửi! Vui lòng thử lại.");
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = originalText;
-        }
+    } catch (error) {
+        console.error("Error sending data:", error);
+        alert("Đã xảy ra lỗi trong quá trình gửi! Vui lòng thử lại.");
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalText;
     }
+}
 </script>
 
 </body>
